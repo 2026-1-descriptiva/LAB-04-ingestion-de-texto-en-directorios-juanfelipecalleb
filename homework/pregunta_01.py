@@ -5,6 +5,10 @@
 Escriba el codigo que ejecute la accion solicitada en cada pregunta.
 """
 
+import os
+import zipfile
+import csv
+
 
 def pregunta_01():
     """
@@ -69,5 +73,32 @@ def pregunta_01():
     |  4 | Tampere Science Parks is a Finnish company that owns , leases and builds office properties and it specialises in facilities for technology-oriented businesses         | neutral  |
     ```
 
-
     """
+    # Descomprimir el archivo input.zip
+    with zipfile.ZipFile('files/input.zip', 'r') as zip_ref:
+        zip_ref.extractall('.')
+
+    # Crear la carpeta output si no existe
+    os.makedirs('files/output', exist_ok=True)
+
+    # Función para procesar un conjunto de datos (train o test)
+    def process_dataset(dataset_name):
+        data = []
+        base_path = f'input/{dataset_name}'
+        for sentiment in ['positive', 'negative', 'neutral']:
+            sentiment_path = os.path.join(base_path, sentiment)
+            for file in os.listdir(sentiment_path):
+                if file.endswith('.txt'):
+                    with open(os.path.join(sentiment_path, file), 'r', encoding='utf-8') as f:
+                        phrase = f.read().strip()
+                    data.append({'phrase': phrase, 'target': sentiment})
+        # Escribir el CSV
+        with open(f'files/output/{dataset_name}_dataset.csv', 'w', newline='', encoding='utf-8') as csvfile:
+            fieldnames = ['phrase', 'target']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(data)
+
+    # Procesar train y test
+    process_dataset('train')
+    process_dataset('test')
